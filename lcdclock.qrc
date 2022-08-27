@@ -1,0 +1,4 @@
+<RCC>
+    <qresource prefix="lcdClock">
+    </qresource>
+</RCC>

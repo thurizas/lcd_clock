@@ -15,13 +15,14 @@
 #include <QMessageBox>
 
 
-lcdClock::lcdClock(QWidget *parent)  : QDialog(parent), m_bDispSec(false), m_bMode(true), m_nDisplay(0)
+lcdClock::lcdClock(QWidget *parent)  : QDialog(parent), m_bDispSec(false), m_bMode(true), m_bOnTop(false), m_nDisplay(0)
 {
     getSettings();
 
     setupUI();
     setupActions();
     setupMenu();
+    setZOrder();
  
 
     QTimer* timer = new QTimer(this);
@@ -38,7 +39,7 @@ lcdClock::~lcdClock()
     writeSettings();
 }
 
-// TODO : modify this for 12- or 24-hour clock
+
 void lcdClock::showTime()
 {
     QString text;
@@ -91,6 +92,7 @@ void lcdClock::setupMenu()
     m_popUp = new QMenu(this);
     m_popUp->addAction(m_showsec);
     m_popUp->addAction(m_show24);
+    m_popUp->addAction(m_onTop);
     m_popUp->addSeparator();
     m_popUp->addAction(m_showVer);
     m_popUp->addSeparator();
@@ -112,6 +114,9 @@ void lcdClock::setupActions()
 
     m_showVer = new QAction("version", this);
     connect(m_showVer, &QAction::triggered, this, &lcdClock::onShowVersion);
+
+    m_onTop = new QAction("on Top", this);
+    connect(m_onTop, &QAction::triggered, this, &lcdClock::onTop);
 
     m_exit = new QAction("exit", this);
     connect(m_exit, &QAction::triggered, this, &lcdClock::onExit);
@@ -149,6 +154,7 @@ void lcdClock::getSettings()
 
     m_bDispSec = settings.value("display/displaySeconds", false).toBool();
     m_bMode = settings.value("display/24HourClock", true).toBool();
+    m_bOnTop = settings.value("display/alwaysOnTop", false).toBool();
     m_nDisplay = settings.value("monitor", 0).toInt();
     m_rectLoc = settings.value("location",QRect(0, 0, 251, 91)).toRect();
     
@@ -169,6 +175,7 @@ void lcdClock::writeSettings()
 
     settings.setValue("display/displaySeconds", m_bDispSec);
     settings.setValue("display/24HourClock", m_bMode);
+    settings.setValue("display/alwaysOnTop", m_bOnTop);
     
     // determine which monitor we are current displayed on and store it....
     QDesktopWidget* pDesktop = QApplication::desktop();
@@ -204,10 +211,27 @@ void lcdClock::onShowVersion()
     QMessageBox::information(nullptr, "lcdClock", message);
 }
 
+void lcdClock::onTop()
+{
+  m_bOnTop = !m_bOnTop;
+  setZOrder();
+}
+
 void lcdClock::onExit()
 {
     writeSettings();
     QApplication::quit();
+}
+
+void lcdClock::setZOrder()
+{
+  Qt::WindowFlags     flags = this->windowFlags();           // get current flag settings....
+
+  if (m_bOnTop) flags = flags | Qt::WindowStaysOnTopHint;
+  else flags = flags & ~Qt::WindowStaysOnTopHint;
+
+  this->setWindowFlags(flags);                              // will initially hide the window as the flags are changed
+  this->show();                                             // make the window visible again
 }
 
 

@@ -25,11 +25,12 @@ private slots:
     void onShowSec();
     void onHourFormat();
     void onShowVersion();
-
+    void onTop();
 private:
      QLCDNumber* m_lcdDisplay;
      bool        m_bDispSec;
      bool        m_bMode;                // show 24-hour clock
+     bool        m_bOnTop;               // lock this window to top-most?
      int         m_nDisplay;             // which displays to use on a multi-monitor system.
      QRect       m_rectLoc;
      int         m_nX;
@@ -40,6 +41,7 @@ private:
      QAction*    m_show24;
      QAction*    m_showVer;
      QAction*    m_exit;
+     QAction*    m_onTop;
 
      void getSettings();
      void writeSettings();
@@ -49,6 +51,7 @@ private:
 
      void mousePressEvent(QMouseEvent*);
      void mouseMoveEvent(QMouseEvent*);
+     void setZOrder();
 };
 
 #endif // LCDCLOCK_H
