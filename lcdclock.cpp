@@ -6,12 +6,12 @@
 #include <QTimer>
 #include <QMenu>
 #include <QAction>
-#include <QDatetime>
+#include <QDateTime>
 #include <QMouseEvent>
 #include <QSettings>
 #include <QApplication>
 #include <QDebug>
-#include <qdesktopwidget>
+#include <QDesktopWidget>
 #include <QMessageBox>
 
 
@@ -104,18 +104,20 @@ void lcdClock::setupActions()
 {
     m_showsec = new QAction("show seconds", this);
     m_showsec->isCheckable();
-    m_showsec->setChecked(m_bDispSec);
+    m_showsec->setChecked(m_checks[lcdClock::item::MNU_SECS]);
     connect(m_showsec, &QAction::triggered, this, &lcdClock::onShowSec);
 
     m_show24 = new QAction("12/24 hour", this);
     m_show24->isCheckable();
-    m_show24->setChecked(m_bMode);
+    m_show24->setChecked(m_checks[lcdClock::item::MNU_24HOUR]);
     connect(m_show24, &QAction::triggered, this, &lcdClock::onHourFormat);
 
     m_showVer = new QAction("version", this);
     connect(m_showVer, &QAction::triggered, this, &lcdClock::onShowVersion);
 
     m_onTop = new QAction("on Top", this);
+	m_onTop->isCheckable();
+	m_onTop->setChecked(m_checks[lcdClock::item::MNU_ONTOP]);
     connect(m_onTop, &QAction::triggered, this, &lcdClock::onTop);
 
     m_exit = new QAction("exit", this);
@@ -157,6 +159,11 @@ void lcdClock::getSettings()
     m_bOnTop = settings.value("display/alwaysOnTop", false).toBool();
     m_nDisplay = settings.value("monitor", 0).toInt();
     m_rectLoc = settings.value("location",QRect(0, 0, 251, 91)).toRect();
+
+	// set up check states
+	m_checks[lcdClock::item::MNU_SECS] = m_bDispSec;
+	m_checks[lcdClock::item::MNU_24HOUR] = m_bMode;
+	m_checks[lcdClock::item::MNU_ONTOP] = m_bOnTop;
     
     // make sure m_rectLoc makes sense....  This needs to be done better
     if ((m_rectLoc.top() < 0) || (m_rectLoc.top() > 640)) m_rectLoc.setTop(0);
@@ -188,32 +195,39 @@ void lcdClock::writeSettings()
 
 void lcdClock::onShowSec()
 {
-    m_bDispSec = !m_bDispSec;                      // toggle value
-    m_showsec->setChecked(m_bDispSec);
-    if (m_bDispSec)
-        m_lcdDisplay->setDigitCount(8);
-    else
-        m_lcdDisplay->setDigitCount(5);
-    qDebug() << "in onShowSec";
+  m_bDispSec = !m_bDispSec;                      // toggle value
+  m_checks[lcdClock::item::MNU_SECS] = m_bDispSec;
+  m_showsec->setChecked(m_bDispSec);
+  if (m_bDispSec)
+	m_lcdDisplay->setDigitCount(8);
+  else
+	m_lcdDisplay->setDigitCount(5);
+  qDebug() << "in onShowSec";
 }
 
 void lcdClock::onHourFormat()
 {
-    m_bMode = !m_bMode;                            // toggle value
-    // TODO: modify UI for change of mode.
-    qDebug() << "in onHourFormat";
+  m_bMode = !m_bMode;                            // toggle value
+  m_checks[lcdClock::item::MNU_24HOUR] = m_bMode;
+  m_show24->setChecked(m_bMode);
+  
+  // TODO: modify UI for change of mode.
+
+  qDebug() << "in onHourFormat";
 }
 
 void lcdClock::onShowVersion()
 {
-    QString message = QString("version: %1.%2.%3\nbuild #: %4 ").arg(major).arg(minor).arg(patch).arg(build);
-
-    QMessageBox::information(nullptr, "lcdClock", message);
+  QString message = QString("version: %1.%2.%3\nbuild #: %4 ").arg(major).arg(minor).arg(patch).arg(build);
+  
+  QMessageBox::information(nullptr, "lcdClock", message);
 }
 
 void lcdClock::onTop()
 {
   m_bOnTop = !m_bOnTop;
+  m_checks[lcdClock::item::MNU_ONTOP] = m_bOnTop;
+  m_onTop->setChecked(m_bOnTop);
   setZOrder();
 }
 

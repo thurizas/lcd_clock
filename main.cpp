@@ -3,9 +3,14 @@
 #include <QDir>
 
 #include <iostream>
-#include <windows.h>
+//#include <windows.h>
 #include <fcntl.h>
+//#include <io.h>
+
+#ifdef __WIN32
+#include <windows.h>
 #include <io.h>
+#endif
 
 void allocConsole();
 
@@ -36,6 +41,7 @@ int main(int argc, char *argv[])
 //
 void allocConsole()
 {
+#ifdef __WIN32
     // Create the console window and set the window title.
     if (AllocConsole() == 0)
     {
@@ -51,10 +57,10 @@ void allocConsole()
     ::freopen_s(&pNewStderr, "CONOUT$", "w", stderr);
     ::freopen_s(&pNewStdin, "CONIN$", "r", stdin);
 
-    // Clear the error state for all of the C++ standard streams. Attempting to accessing the streams before they refer
-    // to a valid target causes the stream to enter an error state. Clearing the error state will fix this problem,
-    // which seems to occur in newer version of Visual Studio even when the console has not been read from or written
-    // to yet.
+    // Clear the error state for all of the C++ standard streams. Attempting to accessing the 
+    // streams before they refer to a valid target causes the stream to enter an error state. 
+    // Clearing the error state will fix this problem, which seems to occur in newer version 
+    // of Visual Studio even when the console has not been read from or written to yet.
 
     std::cout.clear();
     std::cerr.clear();
@@ -63,6 +69,7 @@ void allocConsole()
     std::wcout.clear();
     std::wcerr.clear();
     std::wcin.clear();
+#endif
 }
 
 
